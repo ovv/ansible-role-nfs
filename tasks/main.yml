@@ -1,0 +1,53 @@
+---
+
+- name: Install netbase
+  apt:
+    pkg: netbase
+    state: latest
+  when: ansible_distribution == 'Ubuntu'
+
+- name: install NFS server
+  apt:
+    pkg: nfs-kernel-server
+    state: latest
+
+- name: NFS in /etc/services
+  lineinfile:
+    path: /etc/services
+    line: "{{ item }}"
+  with_items:
+    - "nfs             2049/tcp"
+    - "nfs             2049/udp"
+
+- name: create exports directory
+  file:
+    path: "{{ item.key }}"
+    state: directory
+    owner: nobody
+    group: nogroup
+  with_dict: "{{ nfs_exports }}"
+
+- name: configure
+  template:
+    src: etc/default/nfs-kernel-server
+    dest: /etc/default/nfs-kernel-server
+  notify: restart nfs
+
+- name: configure exports
+  template:
+    src: etc/exports
+    dest: /etc/exports
+  notify: reload exports
+
+- name: enable nfs server
+  service:
+    name: nfs-kernel-server.service
+    state: started
+    enabled: true
+
+- name: ufw
+  include_tasks: ufw.yml
+  with_dict: "{{ nfs_exports }}"
+  loop_control:
+    loop_var: nfs_export
+  when: ufw_enabled

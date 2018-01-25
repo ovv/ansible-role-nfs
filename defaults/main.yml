@@ -1,0 +1,5 @@
+---
+
+nfs_exports: {}
+ufw_enabled: True
+nfs_port: 34433

@@ -1,0 +1,28 @@
+---
+sudo: required
+services: docker
+
+env:
+  - distro=debian8
+  - distro=debian9
+  - distro=ubuntu1604
+
+install:
+  - export container_id=$(date +%s)
+  - idempotence=$(mktemp)
+  - "printf '[defaults]\nroles_path = ../' > ansible.cfg"
+
+  # Build and run docker container
+  - docker pull geerlingguy/docker-$distro-ansible:latest
+  - docker run -p 127.0.0.1:111:111 -p 127.0.0.1:2049:2049 -p 127.0.0.1:34433:34433 --detach --volume="$(dirname "$TRAVIS_BUILD_DIR")":/etc/ansible/roles:rw --name $container_id --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro geerlingguy/docker-$distro-ansible:latest /lib/systemd/systemd
+  - docker exec --tty ${container_id} env TERM=xterm apt-get update -qq
+  - docker ps
+
+script:
+  # Run playbook.
+  - docker exec --tty $container_id env TERM=xterm ansible-playbook /etc/ansible/roles/ansible-role-nfs/tests/test.yml --syntax-check
+  - docker exec $container_id env TERM=xterm env ANSIBLE_FORCE_COLOR=1 ansible-playbook /etc/ansible/roles/ansible-role-nfs/tests/test.yml -vvv
+  - docker exec $container_id ansible-playbook /etc/ansible/roles/ansible-role-nfs/tests/test.yml | tee -a $idempotence
+  - tail $idempotence | grep -q 'changed=0.*failed=0' && (printf 'Idempotence test pass') || (printf 'Idempotence test fail' && exit 1)
+
+  - docker exec --tty ${container_id} env TERM=xterm journalctl -u nfs-kernel-server.service -n 200 --no-pager
