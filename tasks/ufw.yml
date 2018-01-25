@@ -1,0 +1,13 @@
+---
+
+- name: open firewall
+  ufw:
+    rule: allow
+    direction: in
+    to_port: "{{ item }}"
+    from_ip: "{{ nfs_export.value.ip }}"
+  with_items:
+    - 111
+    - 2049
+    - "{{ nfs_port }}"
+  when: ufw_enabled

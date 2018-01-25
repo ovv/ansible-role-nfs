@@ -1,0 +1,12 @@
+---
+
+- hosts: localhost
+  tags:
+    - nfs
+  roles:
+    - ansible-role-nfs
+  vars:
+    ufw_enabled: False
+    nfs_exports:
+      /etc/ansible/roles/foo:
+          host: localhost
