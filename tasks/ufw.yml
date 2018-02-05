@@ -5,7 +5,7 @@
     rule: allow
     direction: in
     to_port: "{{ item }}"
-    from_ip: "{{ nfs_export.value.ip }}"
+    from_ip: "{{ nfs_export.value.host }}"
   with_items:
     - 111
     - 2049
