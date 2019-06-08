@@ -50,4 +50,4 @@
   with_dict: "{{ nfs_exports }}"
   loop_control:
     loop_var: nfs_export
-  when: ufw_enabled
+  when: ufw_enabled | bool

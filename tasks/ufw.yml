@@ -7,7 +7,7 @@
     to_port: "{{ item }}"
     from_ip: "{{ nfs_export.value.host }}"
   with_items:
-    - 111
-    - 2049
+    - "111"
+    - "2049"
     - "{{ nfs_port }}"
-  when: ufw_enabled
+  when: ufw_enabled | bool
