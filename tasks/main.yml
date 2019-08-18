@@ -3,13 +3,13 @@
 - name: Install netbase
   apt:
     pkg: netbase
-    state: latest
+    state: present
   when: ansible_distribution == 'Ubuntu'
 
 - name: install NFS server
   apt:
     pkg: nfs-kernel-server
-    state: latest
+    state: present
 
 - name: NFS in /etc/services
   lineinfile:
